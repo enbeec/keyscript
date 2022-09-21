@@ -1,0 +1,19 @@
+{
+  "name": "keyscript",
+  "version": "0.1.0",
+  "description": "parser for browser keybindings using RxJS",
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "author": "Val Currie",
+  "license": "MIT",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.38.0",
+    "@typescript-eslint/parser": "^5.38.0",
+    "eslint": "^8.23.1",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1",
+    "typescript": "^4.8.3"
+  }
+}
