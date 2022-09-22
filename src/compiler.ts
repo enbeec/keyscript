@@ -3,6 +3,19 @@ import { Observable } from "rxjs";
 import { chord, seq } from "./keyboard";
 import { KeyCode, KeyMap, Mod } from "./keycodes";
 
+// TODO: wrap grammar in a class that takes in things like lists of mod combos, keymaps etc 
+//       -- feel free to modify the Keyscript class itself (splitting up the keymap by type, etc)
+//       -- the map keys can be used to build the grammar for Keys to make the parser more flexible
+//       -- this tight coupling will allow for the keywords to be configurable via these interfaces
+
+// TODO: list -> expr
+// TODO: should mod be an expr?
+// TODO: arbitrary nesting level in grammar (recursive) but enforce KeyCode|KeyCode[]|KeyCode[][] after parser
+//       -- also document what the three types in that union mean:
+//            KeyCode = a key
+//            KeyCode[] = keys as args to a matchmaker
+//            KeyCode[][] = keyA | keyB arrays as keys as args to a matchmaker
+
 /** 
   Grammar rules:
     statements start with a label
@@ -135,8 +148,6 @@ export class Keyscript {
   private set keymap(keymap: KeyMap) {
     this._keymap = keymap;
   }
-
-  private buildPipeline() { }
   /* end da anti-YAGNI zone ===================================================== */
 
   constructor(
@@ -145,7 +156,6 @@ export class Keyscript {
   ) {
     this._keymap = keymap;
     this._matchers = this.makeMatchMakers(matchers);
-    this.buildPipeline();
   }
 
   compile(source: string): KeyBindings {
