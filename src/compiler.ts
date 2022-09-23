@@ -4,11 +4,10 @@ import { chord, seq } from "./keyboard";
 import { KeyCode } from "./keycodes";
 import { KeyMap, Mod } from "./keymap"
 
-const keymap = new KeyMap();
-
 // TODO: list -> expr
 // TODO: should mod be an expr?
 // TODO: arbitrary nesting level in grammar (recursive) but enforce KeyCode|KeyCode[]|KeyCode[][] after parser
+//       -- just needs to be factored out of keymap.ts
 //       -- also document what the three types in that union mean:
 //            KeyCode = a key
 //            KeyCode[] = keys as args to a matchmaker
@@ -16,98 +15,6 @@ const keymap = new KeyMap();
 
 const quote = (str: string) => `"${str}"`;
 const peggify = (strs: string[]) => strs.map(quote).join('/');
-
-/** 
-  Grammar rules:
-    statements start with a label
-    mods may only follow a label or another mod
-    chord/seq may only follow a mod
-    lists terminate the statement and must follow chord/seq
-    (implicit) EOF means no more statements
-*/
-const grammar = () => `
-Start
- = Keyscript
-
-Keyscript
- = Statement *
-
-Statement 
-  = l:Label _1 t:ListType _1 m:(Mods/NoMods) v:(List/EmptyList) StatementEnd
-  { return { label: l, type: t, mods: m, value: v };}
-  
-StatementEnd "end of statement"
- = nl
-
-Mods
- = head:Mod tail:PaddedMod* _1
- { return [head, ...tail] }
-
-NoMods
- = _0
- { return [] }
-
-PaddedMod "mod/ctl/alt/shift"
- = _1 m:Mod
- { return m }
-
-List
- = ListStart head:Key tail:PaddedKey* _0 ListEnd
- { return [head, ...tail.map($ => $[1])] }
- 
-EmptyList
- = "("_0")"
- { return [] }
-
-ListStart "start of list"
- = "(" / "[" / "{"
-
-ListEnd "end of list"
- = ")" / "]" / "}"
-
-PaddedKey "bindable key"
- = _1 k:Key
- { return k }
- 
-ListType
- = "chord" / "seq"
-
-Key "bindable key"
- = ${peggify(keymap.keys)}
-
-Mod "mod/ctl/alt/shift"
- = ${peggify(keymap.mods)}
-
-Label
- = Word
-
-Word
- = l:Letter+
- { return l.join("") }
-
-Number
- = [0-9]
-
-Letter
- = [a-zA-Z]
- 
-_nl
- = nl*
-
-nl "newline"
- = _0 "\\n"
-
-ws "whitespace"
- = [ \\t]
-
-_0 "zero or more whitespaces"
- = ws*
-
-_1 "one or more whitespaces"
- = ws+
-`
-
-const parser = generate(grammar());
 
 interface Statement {
   label: string;
@@ -135,7 +42,7 @@ export class Keyscript {
 
   /* YAGNI? never heard of her... =============================================== */
   private makeMatchMakers(matchers: NamedMatchMaker[]): Map<string, MatchMaker> {
-    return new Map([...matchers, ['chord', chord], ['seq', seq]]);
+    return new Map([['chord', chord], ['seq', seq], ...matchers]);
   }
 
   private _matchers: Map<string, MatchMaker>;
@@ -151,12 +58,109 @@ export class Keyscript {
   }
   /* end da anti-YAGNI zone ===================================================== */
 
+  private get grammar() {
+
+    /** 
+      Grammar rules:
+        statements start with a label
+        mods may only follow a label or another mod
+        chord/seq may only follow a mod
+        lists terminate the statement and must follow chord/seq
+        (implicit) EOF means no more statements
+    */
+    return `
+Start
+= Keyscript
+
+Keyscript
+= Statement *
+
+Statement 
+= l:Label _1 t:ListType _1 m:(Mods/NoMods) v:(List/EmptyList) StatementEnd
+{ return { label: l, type: t, mods: m, value: v };}
+
+StatementEnd "end of statement"
+= nl
+
+Mods
+= head:Mod tail:PaddedMod* _1
+{ return [head, ...tail] }
+
+NoMods
+= _0
+{ return [] }
+
+PaddedMod "mod/ctl/alt/shift"
+= _1 m:Mod
+{ return m }
+
+List
+= ListStart head:Key tail:PaddedKey* _0 ListEnd
+{ return [head, ...tail.map($ => $[1])] }
+
+EmptyList
+= "("_0")"
+{ return [] }
+
+ListStart "start of list"
+= "(" / "[" / "{"
+
+ListEnd "end of list"
+= ")" / "]" / "}"
+
+PaddedKey "bindable key"
+= _1 k:Key
+{ return k }
+
+ListType
+= ${peggify(this.matchers.map<string>(named => named[0]))}
+
+Key "bindable key"
+= ${peggify(this.keymap.keys)}
+
+Mod "mod/ctl/alt/shift"
+= ${peggify(this.keymap.mods)}
+
+Label
+= Word
+
+Word
+= l:Letter+
+{ return l.join("") }
+
+Number
+= [0-9]
+
+Letter
+= [a-zA-Z]
+
+_nl
+= nl*
+
+nl "newline"
+= _0 "\\n"
+
+ws "whitespace"
+= [ \\t]
+
+_0 "zero or more whitespaces"
+= ws*
+
+_1 "one or more whitespaces"
+= ws+
+`;
+  }
+
+  private get parser() {
+    return generate(this.grammar)
+  }
+
   constructor(
-    // keymap: KeyMap,
     matchers: NamedMatchMaker[],
-    // this._keymap = keymap;
+    keymap?: KeyMap,
   ) {
     this._matchers = this.makeMatchMakers(matchers);
+    this._keymap = keymap || new KeyMap();
   }
 
   compile(source: string): KeyBindings {
@@ -166,8 +170,9 @@ export class Keyscript {
   }
 
   private key(name: string) {
-    const key = this._keymap.get(name);
-    if (!key) throw new Error(`no matcher named ${name}`)
+    const tup = this._keymap.get(name);
+    if (!tup) throw new Error(`no matcher named ${name}`)
+    return tup[1];
   }
 
   private matcher(name: string) {
@@ -181,7 +186,7 @@ export class Keyscript {
     let statements: Statement[] = [];
 
     try {
-      statements = parser.parse(source);
+      statements = this.parser.parse(source);
     } catch (e) {
       throw new Error(`Problem parsing input: ${e}`);
     }
@@ -198,7 +203,7 @@ export class Keyscript {
   private buildBindings(statements: Statement[]): KeyBindings {
     const bindings = statements.map<Binding>(binding => {
       const keycodes = binding.value.map(key => {
-        const mapcodes = this.keymap[key];
+        const mapcodes = this.key(key);
         return mapcodes;
       }) as KeyCode[];
       return {
