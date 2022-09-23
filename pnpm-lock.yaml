@@ -9,11 +9,13 @@ specifiers:
   peggy: ^2.0.1
   prettier: ^2.7.1
   rxjs: ^7.5.6
+  subsink: ^1.0.2
   typescript: ^4.8.3
 
 dependencies:
   peggy: 2.0.1
   rxjs: 7.5.6
+  subsink: 1.0.2
 
 devDependencies:
   '@typescript-eslint/eslint-plugin': 5.38.0_wsb62dxj2oqwgas4kadjymcmry
@@ -926,6 +928,10 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
     dev: true
+
+  /subsink/1.0.2:
+    resolution: {integrity: sha512-QFL2oKaA6jVai82dcF0/SIKHNrKJO/wAiHBw9CG576+eBzeg+lZmpG63Tvajx3yg05Hf9ZIZ+zroJutj3hvLNQ==}
+    dev: false
 
   /supports-color/7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}

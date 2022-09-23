@@ -1,12 +1,10 @@
 import { generate } from "peggy"
 import { Observable } from "rxjs";
 import { chord, seq } from "./keyboard";
-import { KeyCode, KeyMap, Mod } from "./keycodes";
+import { KeyCode } from "./keycodes";
+import { KeyMap, Mod } from "./keymap"
 
-// TODO: wrap grammar in a class that takes in things like lists of mod combos, keymaps etc 
-//       -- feel free to modify the Keyscript class itself (splitting up the keymap by type, etc)
-//       -- the map keys can be used to build the grammar for Keys to make the parser more flexible
-//       -- this tight coupling will allow for the keywords to be configurable via these interfaces
+const keymap = new KeyMap();
 
 // TODO: list -> expr
 // TODO: should mod be an expr?
@@ -15,6 +13,9 @@ import { KeyCode, KeyMap, Mod } from "./keycodes";
 //            KeyCode = a key
 //            KeyCode[] = keys as args to a matchmaker
 //            KeyCode[][] = keyA | keyB arrays as keys as args to a matchmaker
+
+const quote = (str: string) => `"${str}"`;
+const peggify = (strs: string[]) => strs.map(quote).join('/');
 
 /** 
   Grammar rules:
@@ -32,33 +33,30 @@ Keyscript
  = Statement *
 
 Statement 
-  = l:Label _ t:ListType _ m:(Mods/NoMods) v:(List/EmptyList) StatementEnd
+  = l:Label _1 t:ListType _1 m:(Mods/NoMods) v:(List/EmptyList) StatementEnd
   { return { label: l, type: t, mods: m, value: v };}
   
 StatementEnd "end of statement"
- = _ws nl*
+ = nl
 
 Mods
- = head:Mod tail:PaddedMod* _
+ = head:Mod tail:PaddedMod* _1
  { return [head, ...tail] }
 
 NoMods
- = _ws
+ = _0
  { return [] }
 
 PaddedMod "mod/ctl/alt/shift"
- = _ m:Mod
+ = _1 m:Mod
  { return m }
 
-Mod "mod/ctl/alt/shift"
- = "ctl" / "alt" / "shift" / "mod"
-
 List
- = ListStart head:Key tail:PaddedKey* _ws ListEnd
+ = ListStart head:Key tail:PaddedKey* _0 ListEnd
  { return [head, ...tail.map($ => $[1])] }
  
 EmptyList
- = "("_ws")"
+ = "("_0")"
  { return [] }
 
 ListStart "start of list"
@@ -66,16 +64,19 @@ ListStart "start of list"
 
 ListEnd "end of list"
  = ")" / "]" / "}"
+
+PaddedKey "bindable key"
+ = _1 k:Key
+ { return k }
  
 ListType
  = "chord" / "seq"
 
-PaddedKey "bindable key"
- = _ k:Key
- { return k }
-
 Key "bindable key"
- = "up" / "down" / "left" / "right" / [a-z]
+ = ${peggify(keymap.keys)}
+
+Mod "mod/ctl/alt/shift"
+ = ${peggify(keymap.mods)}
 
 Label
  = Word
@@ -90,19 +91,19 @@ Number
 Letter
  = [a-zA-Z]
  
-_nl "Optionally padded newline"
- = _*nl
+_nl
+ = nl*
 
 nl "newline"
- = "\\n"
+ = _0 "\\n"
 
 ws "whitespace"
  = [ \\t]
 
-_ws "zero or more whitespaces"
+_0 "zero or more whitespaces"
  = ws*
 
-_ "one or more whitespaces"
+_1 "one or more whitespaces"
  = ws+
 `
 
@@ -151,10 +152,10 @@ export class Keyscript {
   /* end da anti-YAGNI zone ===================================================== */
 
   constructor(
-    keymap: KeyMap,
+    // keymap: KeyMap,
     matchers: NamedMatchMaker[],
+    // this._keymap = keymap;
   ) {
-    this._keymap = keymap;
     this._matchers = this.makeMatchMakers(matchers);
   }
 
