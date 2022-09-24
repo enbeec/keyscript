@@ -24,7 +24,7 @@ export class KeyMap {
   private subs = new SubSink();
   destroy = () => this.subs.unsubscribe();
 
-  constructor(keymap?: typeof defaultKeymap) {
+  constructor(keymap?: TupKeyMap[]) {
     this._keymap$ = new BehaviorSubject(keymap || [
       ...defaultKeymap, ...(defaultModmap as TupKeyMap[])
     ]);
@@ -60,7 +60,7 @@ export class KeyMap {
   }
 
   mods: string[] = defaultModmap
-    .map(k => k[0] as typeof k[0]);
+    .map(k => k[0]);
 
   defaultKeys: string[] = defaultKeymap
     .map(k => k[0])
