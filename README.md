@@ -33,7 +33,9 @@ the grammar -- I'm very much still learning about them.
 
 There's no duplicate checking and the grammar is kinda sloppy which makes
 debugging hard. It's a lovely proof of concept but extending the grammar at all
-will require a good foundation. Oh and I should reserve keywords...
+will require a good foundation.
+
+Keywords should be reserved.
 
 Lists will only use `()`. Blocks (see below) use `{}`. And I'm reserving `[]`.
 
