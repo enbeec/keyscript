@@ -47,7 +47,10 @@ export class Keyscript {
 
   private _compile(source: string, parser: Parser) {
     const bindings: Binding[] = [];
-    bindings.push(...parser.parse(source).map(this.bindAndLabel));
+    bindings.push(...parser.parse(source).map(s => {
+      console.debug(s)
+      return this.bindAndLabel(s)
+    }));
     return Map(bindings);
   }
 

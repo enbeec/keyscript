@@ -1,4 +1,4 @@
-import { Observable, combineLatest, map } from "rxjs";
+import { Observable, combineLatest, map, tap } from "rxjs";
 import { List } from "immutable";
 import type { Mod } from "./keymap"
 import { generate } from "peggy";
@@ -17,7 +17,15 @@ export function makeParser$(
 ) {
   return combineLatest([matcherNames$, keyNames$, modNames$]).pipe(
     // create the parser
-    map(([matchers, keys, mods]) => generate(grammar({ matchers, keys, mods }))),
+    tap(([matchers, keys, mods]) => console.debug(
+      `Generating a parser with:`,
+      matchers,
+      keys,
+      mods
+    )),
+    map(([matchers, keys, mods]) => grammar({ matchers, keys, mods })),
+    tap(console.debug),
+    map(grammar => generate(grammar)),
     // custom interface for typing the parser output
     map(parser => {
       return {
@@ -56,7 +64,7 @@ StatementEnd "end of statement"
 = nl
 
 Mods
-= head:Mod tail:PaddedMod* _1
+= ListStart head:Mod tail:PaddedMod* _0 ListEnd
 { return [head, ...tail] }
 
 NoMods
@@ -75,18 +83,9 @@ EmptyList
 = "("_0")"
 { return [] }
 
-ListStart "start of list"
-= "(" / "[" / "{"
-
-ListEnd "end of list"
-= ")" / "]" / "}"
-
 PaddedKey "bindable key"
 = _1 k:Key
 { return k }
-
-ListType
-= ${peggify(matchers)}
 
 Key "bindable key"
 = ${peggify(keys)}
@@ -94,12 +93,21 @@ Key "bindable key"
 Mod "mod/ctl/alt/shift"
 = ${peggify(mods)}
 
+ListType
+= ${peggify(matchers)}
+
 Label
 = Word
 
 Word
 = l:Letter+
 { return l.join("") }
+
+ListStart "start of list"
+= "(" / "[" / "{"
+
+ListEnd "end of list"
+= ")" / "]" / "}"
 
 Number
 = [0-9]
