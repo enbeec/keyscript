@@ -19,6 +19,12 @@ const bindings: Bindings = new Keyscript().compile(source);
 bindings.get("save").pipe(() => console.log("save")); // press ctrl+s, "save" prints
 ```
 
+## Examples
+
+*I haven't done much testing since the last round of upgrades but these are guaranteed to at least compile.*
+
+[alpine](examples/alpine/src/main.ts)
+
 ## Future
 
 This is just a way for me to play with `peggy` and think about patterns for
