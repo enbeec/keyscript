@@ -10,8 +10,7 @@ import {
   distinctUntilChanged,
 } from 'rxjs';
 import { Map, List } from 'immutable';
-import { KeyCode } from './keycodes';
-import { KeyCodes as KeyCodesLvl } from './keymap';
+import { KeyCode, KeyCodes as KeyCodesLvl } from './keycodes';
 
 type KeyCodes = KeyCodesLvl<2>;
 

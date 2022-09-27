@@ -1,26 +1,16 @@
 import { List, Map } from "immutable";
 import { BehaviorSubject, map } from "rxjs";
-import { KeyCode as LiteralKeyCode } from './keycodes'
+import { KeyCode, KeyCodes as KeyCodesLvl } from './keycodes'
+
+type KeyCodes = KeyCodesLvl<1>;
 
 export type Mod = typeof ModKeys[number];
-
-type MaxLevel1<T> = T | T[];
-type MaxLevel2<T> = T | T[] | T[][];
-
-export type KeyCodes<Lvl = 0> =
-  Lvl extends 0
-  ? LiteralKeyCode
-  : Lvl extends 1
-  ? MaxLevel1<LiteralKeyCode>
-  : Lvl extends 2
-  ? MaxLevel2<LiteralKeyCode>
-  : never;
 
 export type KeyMap = typeof KeyMap;
 
 export function KeyMap() {
   const keymap$: BehaviorSubject<
-    Map<string, KeyCodes<1>>
+    Map<string, KeyCodes>
   > = new BehaviorSubject(defaultKeymap);
 
   return {
@@ -28,7 +18,7 @@ export function KeyMap() {
       return defaultKeymap;
     },
 
-    Map(): Map<string, KeyCodes<1>> {
+    Map(): Map<string, KeyCodes> {
       return keymap$.getValue();
     },
 
@@ -36,7 +26,7 @@ export function KeyMap() {
       return keymap$.asObservable();
     },
 
-    _set(map: Map<string, KeyCodes<1>>) {
+    _set(map: Map<string, KeyCodes>) {
       keymap$.next(map);
     },
 
@@ -54,91 +44,91 @@ export function KeyMap() {
   }
 }
 
-function getModNames(keymap: Map<string, KeyCodes<1>>) {
+function getModNames(keymap: Map<string, KeyCodes>) {
   return List(keymap.keys())
     .filter(k => modKeys.some(m => m[0] === k));
 }
 
-function getKeynames(keymap: Map<string, KeyCodes<1>>) {
+function getKeynames(keymap: Map<string, KeyCodes>) {
   return List(keymap.keys())
     .filter(k => modKeys.every(m => m[0] !== k));
 }
 
 enum ModKeys { ctrl, alt, shift, mod };
 
-const ctrl = [LiteralKeyCode.ControlLeft, LiteralKeyCode.ControlRight];
-const alt = [LiteralKeyCode.AltLeft, LiteralKeyCode.AltRight];
-const shift = [LiteralKeyCode.ShiftLeft, LiteralKeyCode.ShiftRight];
+const ctrl = [KeyCode.ControlLeft, KeyCode.ControlRight];
+const alt = [KeyCode.AltLeft, KeyCode.AltRight];
+const shift = [KeyCode.ShiftLeft, KeyCode.ShiftRight];
 
-const modKeys: [string, KeyCodes<1>][] = [
+const modKeys: [string, KeyCodes][] = [
   ['ctrl', ctrl],
   ['alt', alt],
   ['shift', shift],
   ['mod', [...ctrl, ...alt]],
 ];
 
-const defaultKeymap = Map<string, KeyCodes<1>>([
+const defaultKeymap = Map<string, KeyCodes>([
   modKeys[ModKeys.ctrl],
   modKeys[ModKeys.alt],
   modKeys[ModKeys.shift],
   modKeys[ModKeys.mod],
 
-  ['up', [LiteralKeyCode.ArrowUp]],
-  ['down', [LiteralKeyCode.ArrowDown]],
-  ['left', [LiteralKeyCode.ArrowLeft]],
-  ['right', [LiteralKeyCode.ArrowRight]],
+  ['up', [KeyCode.ArrowUp]],
+  ['down', [KeyCode.ArrowDown]],
+  ['left', [KeyCode.ArrowLeft]],
+  ['right', [KeyCode.ArrowRight]],
 
-  ['a', [LiteralKeyCode.KeyA]],
-  ['b', [LiteralKeyCode.KeyB]],
-  ['c', [LiteralKeyCode.KeyC]],
-  ['d', [LiteralKeyCode.KeyD]],
-  ['e', [LiteralKeyCode.KeyE]],
-  ['f', [LiteralKeyCode.KeyF]],
-  ['g', [LiteralKeyCode.KeyG]],
-  ['h', [LiteralKeyCode.KeyH]],
-  ['i', [LiteralKeyCode.KeyI]],
-  ['j', [LiteralKeyCode.KeyJ]],
-  ['k', [LiteralKeyCode.KeyK]],
-  ['l', [LiteralKeyCode.KeyL]],
-  ['m', [LiteralKeyCode.KeyM]],
-  ['n', [LiteralKeyCode.KeyN]],
-  ['o', [LiteralKeyCode.KeyO]],
-  ['p', [LiteralKeyCode.KeyP]],
-  ['q', [LiteralKeyCode.KeyQ]],
-  ['r', [LiteralKeyCode.KeyR]],
-  ['s', [LiteralKeyCode.KeyS]],
-  ['t', [LiteralKeyCode.KeyT]],
-  ['u', [LiteralKeyCode.KeyU]],
-  ['v', [LiteralKeyCode.KeyV]],
-  ['w', [LiteralKeyCode.KeyW]],
-  ['x', [LiteralKeyCode.KeyX]],
-  ['y', [LiteralKeyCode.KeyY]],
-  ['z', [LiteralKeyCode.KeyZ]],
+  ['a', [KeyCode.KeyA]],
+  ['b', [KeyCode.KeyB]],
+  ['c', [KeyCode.KeyC]],
+  ['d', [KeyCode.KeyD]],
+  ['e', [KeyCode.KeyE]],
+  ['f', [KeyCode.KeyF]],
+  ['g', [KeyCode.KeyG]],
+  ['h', [KeyCode.KeyH]],
+  ['i', [KeyCode.KeyI]],
+  ['j', [KeyCode.KeyJ]],
+  ['k', [KeyCode.KeyK]],
+  ['l', [KeyCode.KeyL]],
+  ['m', [KeyCode.KeyM]],
+  ['n', [KeyCode.KeyN]],
+  ['o', [KeyCode.KeyO]],
+  ['p', [KeyCode.KeyP]],
+  ['q', [KeyCode.KeyQ]],
+  ['r', [KeyCode.KeyR]],
+  ['s', [KeyCode.KeyS]],
+  ['t', [KeyCode.KeyT]],
+  ['u', [KeyCode.KeyU]],
+  ['v', [KeyCode.KeyV]],
+  ['w', [KeyCode.KeyW]],
+  ['x', [KeyCode.KeyX]],
+  ['y', [KeyCode.KeyY]],
+  ['z', [KeyCode.KeyZ]],
 
-  ['ent', [LiteralKeyCode.Enter]],
-  ['esc', [LiteralKeyCode.Escape]],
-  ['tab', [LiteralKeyCode.Tab]],
-  ['space', [LiteralKeyCode.Space]],
-  ['bspace', [LiteralKeyCode.Backspace]],
-  ['eql', [LiteralKeyCode.Equal]],
-  ['mins', [LiteralKeyCode.Minus]],
-  ['lbrc', [LiteralKeyCode.BracketLeft]],
-  ['rbrc', [LiteralKeyCode.BracketRight]],
-  ['bsls', [LiteralKeyCode.Backslash]],
-  ['scln', [LiteralKeyCode.Semicolon]],
-  ['quot', [LiteralKeyCode.Quote]],
-  ['comm', [LiteralKeyCode.Comma]],
-  ['dot', [LiteralKeyCode.Period]],
-  ['slsh', [LiteralKeyCode.Slash]],
+  ['ent', [KeyCode.Enter]],
+  ['esc', [KeyCode.Escape]],
+  ['tab', [KeyCode.Tab]],
+  ['space', [KeyCode.Space]],
+  ['bspace', [KeyCode.Backspace]],
+  ['eql', [KeyCode.Equal]],
+  ['mins', [KeyCode.Minus]],
+  ['lbrc', [KeyCode.BracketLeft]],
+  ['rbrc', [KeyCode.BracketRight]],
+  ['bsls', [KeyCode.Backslash]],
+  ['scln', [KeyCode.Semicolon]],
+  ['quot', [KeyCode.Quote]],
+  ['comm', [KeyCode.Comma]],
+  ['dot', [KeyCode.Period]],
+  ['slsh', [KeyCode.Slash]],
 
-  ['0', [LiteralKeyCode.Digit0]],
-  ['1', [LiteralKeyCode.Digit1]],
-  ['2', [LiteralKeyCode.Digit2]],
-  ['3', [LiteralKeyCode.Digit3]],
-  ['4', [LiteralKeyCode.Digit4]],
-  ['5', [LiteralKeyCode.Digit5]],
-  ['6', [LiteralKeyCode.Digit6]],
-  ['7', [LiteralKeyCode.Digit7]],
-  ['8', [LiteralKeyCode.Digit8]],
-  ['9', [LiteralKeyCode.Digit9]],
+  ['0', [KeyCode.Digit0]],
+  ['1', [KeyCode.Digit1]],
+  ['2', [KeyCode.Digit2]],
+  ['3', [KeyCode.Digit3]],
+  ['4', [KeyCode.Digit4]],
+  ['5', [KeyCode.Digit5]],
+  ['6', [KeyCode.Digit6]],
+  ['7', [KeyCode.Digit7]],
+  ['8', [KeyCode.Digit8]],
+  ['9', [KeyCode.Digit9]],
 ]);

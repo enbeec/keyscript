@@ -1,3 +1,16 @@
+
+type MaxLevel1<T> = T | T[];
+type MaxLevel2<T> = T | T[] | T[][];
+
+export type KeyCodes<Lvl = 0> =
+  Lvl extends 0
+  ? KeyCode
+  : Lvl extends 1
+  ? MaxLevel1<KeyCode>
+  : Lvl extends 2
+  ? MaxLevel2<KeyCode>
+  : never;
+
 // https://github.com/garygrossgarten/rxjs-shortcuts/blob/master/projects/shortcuts/src/lib/keycodes.ts
 export enum KeyCode {
   KeyA = "KeyA",
