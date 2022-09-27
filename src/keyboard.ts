@@ -1,5 +1,30 @@
-import { combineLatest, distinctUntilChanged, filter, fromEvent, merge, Observable, share } from 'rxjs';
+import { BehaviorSubject, map, combineLatest, distinctUntilChanged, filter, fromEvent, merge, Observable, share } from 'rxjs';
+import { Map, List } from 'immutable';
 import { KeyCode } from './keycodes';
+import { KeyCodes as KeyCodesLvl } from './keymap';
+
+type KeyCodes = KeyCodesLvl<2>;
+
+export type KeyMatcher = (keys: KeyCodes) => Observable<KeyboardEvent[]>;
+
+export type Matchers = typeof Matchers;
+export function Matchers() {
+  const matchers$: BehaviorSubject<
+    Map<string, KeyMatcher>
+  > = new BehaviorSubject(
+    Map([['chord', chord], ['seq', seq]])
+  );
+
+  return {
+    get(name: string) {
+      return matchers$.getValue().get(name);
+    },
+
+    matcherNames$: matchers$.asObservable().pipe(
+      map(m => List(m.keys()))
+    ),
+  }
+}
 
 function shareKeyboardEvents(source: Observable<KeyboardEvent>) {
   return source.pipe(
