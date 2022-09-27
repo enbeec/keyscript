@@ -54,7 +54,6 @@ mods with variants like `ShiftLeft` and `ShiftRight`.
 
 The use case I have in mind is `seq(100)` so that seqs can handle keyups as
 long as you're fast enough. In this case, a 100 millisecond timeout is added.
-If any of the top level keys match 
 
 #### Blocks
 
@@ -62,13 +61,19 @@ Declare a block with an "anonymous statement" like:
 
 ```
 -- match when someone yells any of these words without capslock
-_ $_ (shift $_) {
+_ _ (shift _) {
   some seq (s o m e)
   binds seq (b i n d s)
 }
+
+-- match words
+_ seq(10) (_) {
+  konami (k o n a m i c o d e)
+  supercal (s u p e r c a l i f r a g i l i s t i c e x p i a l i d o c i o u s)
+}
 ```
 
-This would allow grouping things by defaults. All `$_` are replaceable.
+This would allow grouping things by defaults.
 
 #### Macro matcher *(easy)*
 
