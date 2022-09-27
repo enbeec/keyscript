@@ -1,35 +1,55 @@
-import type { ObservedValueOf, Subscription } from "rxjs";
+import { first, firstValueFrom, map, Observable, ObservedValueOf, withLatestFrom } from "rxjs";
 import type { KeyCode } from "./keycodes";
-import { Matchers, KeyMatcher } from "./keyboard";
+import { Map } from "immutable";
+import { Matchers } from "./keyboard";
 import { KeyMap } from "./keymap"
 import { makeParser$, Statement } from "./parser";
 
-type Binding = [string, KeyMatcher];
+type Binding = [string, Observable<KeyboardEvent[]>];
+type Parser = ObservedValueOf<ReturnType<typeof makeParser$>>;
 
 /**
  * Default matchers: chord, seq
  */
 export class Keyscript {
-  compile(source: string) {
-    return this.parser.parse(source).map(this.bindAndLabel);
+  async compile(source: string) {
+    return firstValueFrom(this.compile$(source));
+  }
+
+  compile$(source: string) {
+    return this.parser$.pipe(
+      first(),
+      map(parser => this._compile(source, parser)),
+    )
+  }
+
+  bindings$(source: Observable<string>) {
+    return source.pipe(
+      withLatestFrom(this.parser$),
+      map(([source, parser]) => this._compile(source, parser))
+    )
   }
 
   constructor() {
-    // TODO: expose setters on these that throw if sub isnt active
     this.matchers = Matchers();
     this.keymap = KeyMap();
 
-    // TODO: expose sub/unsub methods
-    makeParser$(
+    this.parser$ = makeParser$(
       this.matchers.matcherNames$,
       this.keymap.keyNames$,
       this.keymap.modNames$
-    ).subscribe(parser => this.parser = parser);
+    );
   }
 
   private matchers: ReturnType<Matchers>;
   private keymap: ReturnType<KeyMap>;
-  private parser: ObservedValueOf<ReturnType<typeof makeParser$>>;
+  private parser$: Observable<Parser>;
+
+  private _compile(source: string, parser: Parser) {
+    const bindings: Binding[] = [];
+    bindings.push(...parser.parse(source).map(this.bindAndLabel));
+    return Map(bindings);
+  }
 
   private bindAndLabel(statement: Statement): Binding {
     const binding = {
@@ -41,7 +61,7 @@ export class Keyscript {
     };
 
     // binding.type is "chord" or "seq" etc.
-    const stream = this.matchers.get(binding.type);
+    const stream = this.matchers.get(binding.type)(binding.value);
     if (!stream)
       throw new Error(`Failed to create stream for binding: ${binding.label}`);
     return ([binding.label, stream]);
