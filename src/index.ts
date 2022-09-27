@@ -1,17 +1,10 @@
 import type { ObservedValueOf, Subscription } from "rxjs";
 import type { KeyCode } from "./keycodes";
 import { Matchers, KeyMatcher } from "./keyboard";
-import { KeyMap, Mod } from "./keymap"
+import { KeyMap } from "./keymap"
 import { makeParser$, Statement } from "./parser";
 
-interface Binding {
-  label: string;
-  type: 'chord' | 'seq';
-  mods: Mod[];
-  value: KeyCode[];
-}
-
-type BindingTuple = [string, KeyMatcher];
+type Binding = [string, KeyMatcher];
 
 /**
  * Default matchers: chord, seq
@@ -21,14 +14,13 @@ export class Keyscript {
     this.parser.parse(source).map(this.bindAndLabel);
   }
 
-  destroy() {
-    this.subscription.unsubscribe();
-  }
-
   constructor() {
+    // TODO: expose setters on these that throw if sub isnt active
     this.matchers = Matchers();
     this.keymap = KeyMap();
-    this.subscription = makeParser$(
+
+    // TODO: expose sub/unsub methods
+    makeParser$(
       this.matchers.matcherNames$,
       this.keymap.keyNames$,
       this.keymap.modNames$
@@ -37,10 +29,9 @@ export class Keyscript {
 
   private matchers: ReturnType<Matchers>;
   private keymap: ReturnType<KeyMap>;
-  private subscription: Subscription;
   private parser: ObservedValueOf<ReturnType<typeof makeParser$>>;
 
-  private bindAndLabel(statement: Statement): BindingTuple {
+  private bindAndLabel(statement: Statement): Binding {
     const binding = {
       ...statement,
       value: statement.value.map(key => {

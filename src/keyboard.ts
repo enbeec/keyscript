@@ -1,4 +1,14 @@
-import { BehaviorSubject, map, combineLatest, distinctUntilChanged, filter, fromEvent, merge, Observable, share } from 'rxjs';
+import {
+  Observable,
+  BehaviorSubject,
+  map,
+  share,
+  merge,
+  filter,
+  fromEvent,
+  combineLatest,
+  distinctUntilChanged,
+} from 'rxjs';
 import { Map, List } from 'immutable';
 import { KeyCode } from './keycodes';
 import { KeyCodes as KeyCodesLvl } from './keymap';
@@ -11,9 +21,7 @@ export type Matchers = typeof Matchers;
 export function Matchers() {
   const matchers$: BehaviorSubject<
     Map<string, KeyMatcher>
-  > = new BehaviorSubject(
-    Map([['chord', chord], ['seq', seq]])
-  );
+  > = new BehaviorSubject(defaultMatchers);
 
   return {
     get(name: string) {
@@ -26,19 +34,19 @@ export function Matchers() {
   }
 }
 
-function shareKeyboardEvents(source: Observable<KeyboardEvent>) {
-  return source.pipe(
+function shareKeyboardEvents(...sources: Observable<KeyboardEvent>[]) {
+  return merge(...sources).pipe(
     distinctUntilChanged(
       (a, b) => a.code === b.code && a.type === b.type
     ),
     share(),
-  )
+  );
 }
 
-const keyEvents$ = shareKeyboardEvents(merge(
+const keyEvents$ = shareKeyboardEvents(
   fromEvent<KeyboardEvent>(document, 'keyup'),
   fromEvent<KeyboardEvent>(document, 'keydown'),
-));
+);
 
 function newKeyStream(key: KeyCode) {
   return keyEvents$.pipe(
@@ -46,8 +54,13 @@ function newKeyStream(key: KeyCode) {
   );
 }
 
+const defaultMatchers = Map<string, KeyMatcher>([
+  ['chord', chord],
+  ['seq', seq],
+]);
+
 /** An observable that only emits when all keys are pressed. */
-export function chord(keys: KeyCode | KeyCode[] | KeyCode[][]) {
+function chord(keys: KeyCode | KeyCode[] | KeyCode[][]) {
   if (!Array.isArray(keys)) keys = [keys];
 
   const keyCodeEvents$ = keys.map((s: KeyCode | KeyCode[]) => {
@@ -65,7 +78,7 @@ export function chord(keys: KeyCode | KeyCode[] | KeyCode[][]) {
 }
 
 /** An observable that only emits when all keys are pressed **in order**. */
-export function seq(keys: KeyCode | KeyCode[] | KeyCode[][]) {
+function seq(keys: KeyCode | KeyCode[] | KeyCode[][]) {
   const sequence = (source: Observable<KeyboardEvent[]>): Observable<KeyboardEvent[]> => {
     return source.pipe(
       filter((events) => {
