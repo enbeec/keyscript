@@ -11,7 +11,7 @@ type Binding = [string, KeyMatcher];
  */
 export class Keyscript {
   compile(source: string) {
-    this.parser.parse(source).map(this.bindAndLabel);
+    return this.parser.parse(source).map(this.bindAndLabel);
   }
 
   constructor() {
