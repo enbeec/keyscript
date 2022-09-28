@@ -62,10 +62,8 @@ export class Keyscript {
   private bindAndLabel(statement: Statement): Binding {
     const binding = {
       ...statement,
-      value: statement.value.map(key => {
-        const mapcodes = this.keymap.get(key);
-        return mapcodes;
-      }) as KeyCode[],
+      value: statement.value.concat(statement.mods)
+        .map(key => this.keymap.get(key)) as KeyCode[],
     };
 
     // binding.type is "chord" or "seq" etc.
