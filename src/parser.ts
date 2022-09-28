@@ -2,6 +2,7 @@ import { Observable, combineLatest, map, tap } from "rxjs";
 import { List } from "immutable";
 import type { Mod } from "./keymap"
 import { generate } from "peggy";
+import { defaultLogger, ILogger } from "./logging";
 
 export interface Statement {
   label: string;
@@ -14,17 +15,19 @@ export function makeParser$(
   matcherNames$: Observable<List<string>>,
   keyNames$: Observable<List<string>>,
   modNames$: Observable<List<string>>,
+  logger?: ILogger,
 ) {
+  logger ??= defaultLogger;
   return combineLatest([matcherNames$, keyNames$, modNames$]).pipe(
     // create the parser
-    tap(([matchers, keys, mods]) => console.debug(
+    tap(([matchers, keys, mods]) => logger.debug(
       `Generating a parser with:`,
-      matchers,
-      keys,
-      mods
+      matchers.toArray(),
+      keys.toArray(),
+      mods.toArray(),
     )),
     map(([matchers, keys, mods]) => grammar({ matchers, keys, mods })),
-    tap(console.debug),
+    tap(logger.debug),
     map(grammar => generate(grammar)),
     // custom interface for typing the parser output
     map(parser => {

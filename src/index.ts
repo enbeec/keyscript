@@ -4,6 +4,7 @@ import { Map } from "immutable";
 import { Matchers } from "./keyboard";
 import { KeyMap } from "./keymap"
 import { makeParser$, Statement } from "./parser";
+import { defaultLogger, ILogger } from "./logging";
 
 type Binding = [string, Observable<KeyboardEvent[]>];
 type Parser = ObservedValueOf<ReturnType<typeof makeParser$>>;
@@ -30,7 +31,9 @@ export class Keyscript {
     )
   }
 
-  constructor() {
+  constructor(logger?: ILogger) {
+    this.logger = logger || defaultLogger;
+
     this.matchers = Matchers();
     this.keymap = KeyMap();
 
@@ -41,6 +44,8 @@ export class Keyscript {
     );
   }
 
+  private logger: ILogger;
+
   private matchers: ReturnType<Matchers>;
   private keymap: ReturnType<KeyMap>;
   private parser$: Observable<Parser>;
@@ -48,7 +53,7 @@ export class Keyscript {
   private _compile(source: string, parser: Parser) {
     const bindings: Binding[] = [];
     bindings.push(...parser.parse(source).map(s => {
-      console.debug(s)
+      this.logger.debug(s)
       return this.bindAndLabel(s)
     }));
     return Map(bindings);
@@ -65,8 +70,9 @@ export class Keyscript {
 
     // binding.type is "chord" or "seq" etc.
     const stream = this.matchers.get(binding.type)(binding.value);
-    if (!stream)
-      throw new Error(`Failed to create stream for binding: ${binding.label}`);
+    if (!stream) throw new Error(
+      `Failed to create stream for binding: ${binding.label}`
+    );
     return ([binding.label, stream]);
   }
 }

@@ -10,6 +10,9 @@ down chord (d)
 right chord (f)
 `);
 
-/* const subs = */ bindings.mapEntries(([name, binding$]) => {
-  return [name, binding$.pipe(map(() => name)).subscribe(console.debug)] as [string, Subscription];
-});
+/* const subs = */ bindings.mapEntries(([name, binding$]) => [
+  name,
+  binding$.pipe(
+    map(() => name)
+  ).subscribe(console.debug),
+] as [string, Subscription]);
