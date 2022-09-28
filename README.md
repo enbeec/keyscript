@@ -3,7 +3,7 @@
 Given this source:
 
 ```
-save chord ctrl shift (s)
+save chord [ctrl shift](s)
 ```
 
 Keyscript can create observables that emit when combinations of keys are
@@ -43,7 +43,9 @@ will require a good foundation.
 
 Keywords should be reserved.
 
-Lists will only use `()`. Blocks (see below) use `{}`. And I'm reserving `[]`.
+Lists of mods will only use `[]`. 
+Lists of regular keys will only use `()`.
+Blocks (see below) use `{}`.
 
 Mods need to move inside the list with the other keys -- I would like to
 enforce that they be at the start, though.

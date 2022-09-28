@@ -57,10 +57,11 @@ Start
 = Keyscript
 
 Keyscript
-= Statement *
+= _nl s:(Statement*) _nl
+{ return s }
 
 Statement 
-= l:Label _1 t:ListType _1 m:(Mods/NoMods) v:(List/EmptyList) StatementEnd
+= l:Label _1 t:ListType _1 m:(Mods/NoMods) _0 v:(List/EmptyList) StatementEnd
 { return { label: l, type: t, mods: m, value: v };}
 
 StatementEnd "end of statement"
