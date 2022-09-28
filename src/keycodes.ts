@@ -1,4 +1,3 @@
-
 type MaxLevel1<T> = T | T[];
 type MaxLevel2<T> = T | T[] | T[][];
 
