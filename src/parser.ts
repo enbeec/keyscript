@@ -69,8 +69,12 @@ Comment "comment"
 { return undefined }
 
 Statement "statement"
-= l:Label _1 t:Matcher _1 m:(Mods/NoMods) _0 v:(List/EmptyList) StatementEnd
-{ return { label: l, type: t, mods: m, value: v };}
+= l:Label 
+	_1 t:Matcher p:(Params/NoParams)
+    _0 m:(Mods/NoMods) 
+    _0 v:(List/EmptyList) 
+StatementEnd
+{ return { label: l, params: p, type: t, mods: m, value: v };}
 
 StatementEnd "end of statement"
 = nl
@@ -79,11 +83,20 @@ Mods
 = ListStart _0nl head:Mod tail:PaddedMod* _0nl ListEnd
 { return [head, ...tail] }
 
+// TODO a NumberLiteral that encapsulates the stuff here
+Params
+= ParamStart _0 head:(Number+) tail:(_1 Number+)* _0 ParamEnd
+{ return [head, ...tail].map($ => parseInt($.join(""))) }
+
 List
 = ListStart _0nl head:Key tail:PaddedKey* _0nl ListEnd
-{ return [head, ...tail.map($ => $[1])] }
+{ return [head, ...tail] }
 
 NoMods
+= _0
+{ return [] }
+
+NoParams
 = _0
 { return [] }
 
