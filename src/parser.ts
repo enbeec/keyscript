@@ -61,10 +61,14 @@ Start
 = Keyscript
 
 Keyscript
-= nl* s:(Statement*) nl*
-{ return s }
+= nl* s:((Statement/Comment)*) nl*
+{ return s.filter(Boolean) }
 
-Statement 
+Comment "comment"
+= "--" [a-zA-Z0-9 \\t]* "\\n"
+{ return undefined }
+
+Statement "statement"
 = l:Label _1 t:Matcher _1 m:(Mods/NoMods) _0 v:(List/EmptyList) StatementEnd
 { return { label: l, type: t, mods: m, value: v };}
 
@@ -102,11 +106,23 @@ Word
 = l:Letter+
 { return l.join("") }
 
+ParamStart
+= "("
+
+ParamEnd
+= ")"
+
 ListStart "start of list"
-= "(" / "[" / "{"
+= "["
 
 ListEnd "end of list"
-= ")" / "]" / "}"
+= "]"
+
+BlockStart
+= "{"
+
+BlockEnd
+= "}"
 
 Number
 = [0-9]
