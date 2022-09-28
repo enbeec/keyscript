@@ -61,19 +61,23 @@ Start
 = Keyscript
 
 Keyscript
-= _nl s:(Statement*) _nl
+= nl* s:(Statement*) nl*
 { return s }
 
 Statement 
-= l:Label _1 t:ListType _1 m:(Mods/NoMods) _0 v:(List/EmptyList) StatementEnd
+= l:Label _1 t:Matcher _1 m:(Mods/NoMods) _0 v:(List/EmptyList) StatementEnd
 { return { label: l, type: t, mods: m, value: v };}
 
 StatementEnd "end of statement"
 = nl
 
 Mods
-= ListStart head:Mod tail:PaddedMod* _0 ListEnd
+= ListStart _0nl head:Mod tail:PaddedMod* _0nl ListEnd
 { return [head, ...tail] }
+
+List
+= ListStart _0nl head:Key tail:PaddedKey* _0nl ListEnd
+{ return [head, ...tail.map($ => $[1])] }
 
 NoMods
 = _0
@@ -83,10 +87,6 @@ PaddedMod "mod/ctl/alt/shift"
 = _1 m:Mod
 { return m }
 
-List
-= ListStart head:Key tail:PaddedKey* _0 ListEnd
-{ return [head, ...tail.map($ => $[1])] }
-
 EmptyList
 = ListStart _0 ListEnd
 { return [] }
@@ -95,15 +95,6 @@ PaddedKey "bindable key"
 = _1 k:Key
 { return k }
 
-Key "bindable key"
-= ${peggify(keys)}
-
-Mod "mod/ctl/alt/shift"
-= ${peggify(mods)}
-
-ListType
-= ${peggify(matchers)}
-
 Label
 = Word
 
@@ -111,23 +102,11 @@ Word
 = l:Letter+
 { return l.join("") }
 
-ArgsStart
-= "("
-
-ArgsEnd
-= ")"
-
 ListStart "start of list"
-= "["
+= "(" / "[" / "{"
 
 ListEnd "end of list"
-= "]"
-
-BlockStart
-= "{"
-
-BlockEnd
-= "}"
+= ")" / "]" / "}"
 
 Number
 = [0-9]
@@ -135,8 +114,8 @@ Number
 Letter
 = [a-zA-Z]
 
-_nl
-= nl*
+_0nl "zero or more whitespaces incl. newlines"
+= (ws/"\\n")*
 
 nl "newline"
 = _0 "\\n"
@@ -149,4 +128,13 @@ _0 "zero or more whitespaces"
 
 _1 "one or more whitespaces"
 = ws+
+
+Key "bindable key"
+= ${peggify(keys)}
+
+Mod "mod/ctl/alt/shift"
+= ${peggify(mods)}
+
+Matcher
+= ${peggify(matchers)}
 `;
