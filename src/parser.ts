@@ -111,11 +111,23 @@ Word
 = l:Letter+
 { return l.join("") }
 
+ArgsStart
+= "("
+
+ArgsEnd
+= ")"
+
 ListStart "start of list"
-= "(" / "[" / "{"
+= "["
 
 ListEnd "end of list"
-= ")" / "]" / "}"
+= "]"
+
+BlockStart
+= "{"
+
+BlockEnd
+= "}"
 
 Number
 = [0-9]
