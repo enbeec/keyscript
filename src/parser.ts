@@ -11,6 +11,14 @@ export interface Statement {
   value: string[];
 }
 
+/**
+  * The parser is always built using reactive dependencies. 
+  *
+  * My hope is to have hot reloading from the start because 
+  * it's useful for i18n reasons and supporting extension.
+  *
+  * Why from the start? Because it's easy now and won't be later.
+  */
 export function makeParser$(
   matcherNames$: Observable<List<string>>,
   keyNames$: Observable<List<string>>,
@@ -19,7 +27,6 @@ export function makeParser$(
 ) {
   logger ??= defaultLogger;
   return combineLatest([matcherNames$, keyNames$, modNames$]).pipe(
-    // create the parser
     tap(([matchers, keys, mods]) => logger.debug(
       `Generating a parser with:`,
       matchers.toArray(),
@@ -27,6 +34,7 @@ export function makeParser$(
       mods.toArray(),
     )),
     map(([matchers, keys, mods]) => grammar({ matchers, keys, mods })),
+    // log the grammar
     tap(logger.debug),
     map(grammar => generate(grammar)),
     // custom interface for typing the parser output
@@ -40,10 +48,6 @@ export function makeParser$(
     })
   )
 }
-
-// TODO: list -> expr
-// TODO: should mod be an expr?
-// TODO: expr ~= list | list of lists etc...
 
 const quote = (str: string) => `"${str}"`;
 const peggify = (strs: List<string>) => strs.map(quote).join('/');
@@ -84,7 +88,7 @@ List
 { return [head, ...tail.map($ => $[1])] }
 
 EmptyList
-= "("_0")"
+= ListStart _0 ListEnd
 { return [] }
 
 PaddedKey "bindable key"

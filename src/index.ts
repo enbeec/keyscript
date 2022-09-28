@@ -1,4 +1,4 @@
-import { first, firstValueFrom, map, Observable, ObservedValueOf, withLatestFrom } from "rxjs";
+import { firstValueFrom, map, Observable, ObservedValueOf, withLatestFrom } from "rxjs";
 import type { KeyCode } from "./keycodes";
 import { Map } from "immutable";
 import { Matchers } from "./keyboard";
@@ -10,21 +10,27 @@ type Binding = [string, Observable<KeyboardEvent[]>];
 type Parser = ObservedValueOf<ReturnType<typeof makeParser$>>;
 
 /**
- * Default matchers: chord, seq
+ * Keyscript puts the matchers and keymap (regular keys as well as mods) 
+ * together into a compiler. There are two ways to call the compiler:
+ *
+ * Async via `compile` -- great for just trying things out.
+ *
+ * Observable `bindings$` takes a constant source but will recompile if any dependencies change.
+ *
+ * Observable `compile$` is like `bindings$` but adds an Observable source to the dependencies.
  */
 export class Keyscript {
   async compile(source: string) {
-    return firstValueFrom(this.compile$(source));
+    return firstValueFrom(this.bindings$(source));
   }
 
-  compile$(source: string) {
+  bindings$(source: string) {
     return this.parser$.pipe(
-      first(),
       map(parser => this._compile(source, parser)),
-    )
+    );
   }
 
-  bindings$(source: Observable<string>) {
+  compile$(source: Observable<string>) {
     return source.pipe(
       withLatestFrom(this.parser$),
       map(([source, parser]) => this._compile(source, parser))

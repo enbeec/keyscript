@@ -8,6 +8,19 @@ export type Mod = typeof ModKeys[number];
 
 export type KeyMap = typeof KeyMap;
 
+/** 
+  * A pseudo-class wrapping a: 
+  * 
+  * `BehaviorSubject<Immutable.Map<string | KeyCodes<1>>>`
+  * 
+  * By default, the keymap is built using an Enum of key codes I found online.
+  * Having the map stored in a subject allows for consunmers to write their 
+  * own map or even switch them on the fly. Two `Observable<List<string>>`
+  * are exposed as parser dependencies.
+  *
+  * I don't know a ton about i18n but it seems helpful 
+  *           and would be a pain to incorporate later on IMO.
+  */
 export function KeyMap() {
   const keymap$: BehaviorSubject<
     Map<string, KeyCodes>
@@ -54,24 +67,35 @@ function getKeynames(keymap: Map<string, KeyCodes>) {
     .filter(k => modKeys.every(m => m[0] !== k));
 }
 
-enum ModKeys { ctrl, alt, shift, mod };
+enum ModKeys {
+  ctrl, alt, shift,
+  lctrl, lalt, lshift,
+  rctrl, ralt, rshift,
+  mod,
+};
 
 const ctrl = [KeyCode.ControlLeft, KeyCode.ControlRight];
 const alt = [KeyCode.AltLeft, KeyCode.AltRight];
 const shift = [KeyCode.ShiftLeft, KeyCode.ShiftRight];
 
 const modKeys: [string, KeyCodes][] = [
+  ['lctrl', [KeyCode.ControlLeft]],
+  ['rctrl', [KeyCode.ControlRight]],
   ['ctrl', ctrl],
+
   ['alt', alt],
+  ['lalt', [KeyCode.AltLeft]],
+  ['ralt', [KeyCode.AltRight]],
+
   ['shift', shift],
+  ['lshift', [KeyCode.ShiftLeft]],
+  ['rshift', [KeyCode.ShiftRight]],
+
   ['mod', [...ctrl, ...alt]],
 ];
 
 const defaultKeymap = Map<string, KeyCodes>([
-  modKeys[ModKeys.ctrl],
-  modKeys[ModKeys.alt],
-  modKeys[ModKeys.shift],
-  modKeys[ModKeys.mod],
+  ...modKeys,
 
   ['up', [KeyCode.ArrowUp]],
   ['down', [KeyCode.ArrowDown]],

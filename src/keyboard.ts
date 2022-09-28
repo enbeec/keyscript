@@ -17,6 +17,14 @@ type KeyCodes = KeyCodesLvl<2>;
 export type KeyMatcher = (keys: KeyCodes) => Observable<KeyboardEvent[]>;
 
 export type Matchers = typeof Matchers;
+
+/**
+  * A pseudo-class wrapping a: 
+  *
+  * `BehaviorSubject<Immutable.Map<string, KeyMatcher>>`
+  * 
+  * Exposes an `Observable<List<string>>` as a parser dependency.
+  */
 export function Matchers() {
   const matchers$: BehaviorSubject<
     Map<string, KeyMatcher>
