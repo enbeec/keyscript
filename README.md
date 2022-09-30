@@ -21,7 +21,8 @@ bindings.get("save").pipe(() => console.log("save")); // press ctrl+s, "save" pr
 
 ## Examples
 
-*I haven't done much testing since the last round of upgrades but these are guaranteed to at least compile.*
+*I haven't done much testing since the last round of upgrades but these are
+guaranteed to at least compile.*
 
 [alpine](examples/alpine/src/main.ts)
 

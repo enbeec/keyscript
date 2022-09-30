@@ -1,7 +1,7 @@
-import { firstValueFrom, map, Observable, ObservedValueOf, withLatestFrom } from "rxjs";
+import { Observable, ObservedValueOf, firstValueFrom, map, withLatestFrom } from "rxjs";
 import type { KeyCode } from "./keycodes";
 import { Map } from "immutable";
-import { Matchers } from "./keyboard";
+import { KeyOperators } from "./keyboard";
 import { KeyMap } from "./keymap"
 import { makeParser$, Statement } from "./parser";
 import { defaultLogger, ILogger } from "./logging";
@@ -40,7 +40,7 @@ export class Keyscript {
   constructor(logger?: ILogger) {
     this.logger = logger || defaultLogger;
 
-    this.matchers = Matchers();
+    this.matchers = KeyOperators();
     this.keymap = KeyMap();
 
     this.parser$ = makeParser$(
@@ -52,7 +52,7 @@ export class Keyscript {
 
   private logger: ILogger;
 
-  private matchers: ReturnType<Matchers>;
+  private matchers: ReturnType<KeyOperators>;
   private keymap: ReturnType<KeyMap>;
   private parser$: Observable<Parser>;
 

@@ -14,21 +14,21 @@ import { KeyCode, KeyCodes as KeyCodesLvl } from './keycodes';
 
 type KeyCodes = KeyCodesLvl<2>;
 
-export type KeyMatcher = (keys: KeyCodes) => Observable<KeyboardEvent[]>;
+export type KeyOperator = (keys: KeyCodes) => Observable<KeyboardEvent[]>;
 
-export type Matchers = typeof Matchers;
+export type KeyOperators = typeof KeyOperators;
 
 /**
   * A pseudo-class wrapping a: 
   *
-  * `BehaviorSubject<Immutable.Map<string, KeyMatcher>>`
+  * `BehaviorSubject<Immutable.Map<string, KeyOperators>>`
   * 
   * Exposes an `Observable<List<string>>` as a parser dependency.
   */
-export function Matchers() {
+export function KeyOperators() {
   const matchers$: BehaviorSubject<
-    Map<string, KeyMatcher>
-  > = new BehaviorSubject(defaultMatchers);
+    Map<string, KeyOperator>
+  > = new BehaviorSubject(defaultOperators);
 
   return {
     get(name: string) {
@@ -61,13 +61,13 @@ function newKeyStream(key: KeyCode) {
   );
 }
 
-const defaultMatchers = Map<string, KeyMatcher>([
+const defaultOperators = Map<string, KeyOperator>([
   ['chord', chord],
   ['seq', seq],
 ]);
 
 /** An observable that only emits when all keys are pressed. */
-function chord(keys: KeyCode | KeyCode[] | KeyCode[][]) {
+function chord(keys: KeyCodes) {
   if (!Array.isArray(keys)) keys = [keys];
 
   const keyCodeEvents$ = keys.map((s: KeyCode | KeyCode[]) => {
@@ -85,7 +85,7 @@ function chord(keys: KeyCode | KeyCode[] | KeyCode[][]) {
 }
 
 /** An observable that only emits when all keys are pressed **in order**. */
-function seq(keys: KeyCode | KeyCode[] | KeyCode[][]) {
+function seq(keys: KeyCodes) {
   const sequence = (source: Observable<KeyboardEvent[]>): Observable<KeyboardEvent[]> => {
     return source.pipe(
       filter((events) => {
