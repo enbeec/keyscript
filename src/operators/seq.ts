@@ -9,15 +9,17 @@ export function seq(keys: KeyCode[]) {
     events: KeyboardEvent[];
     index: number;
     success: boolean;
+    timeout: ReturnType<typeof setTimeout>;
   }
 
   const scanSeq = (s: SeqState, event: KeyboardEvent) => {
     if (
       s.success ||
-      event.code !== keys[s.index + 1].valueOf()[0]
+      event.code !== keys[s.index].valueOf()[0]
     ) {
-      // if success (already emitted at this point)
-      //    or mismatch, then reset
+      // if the code is a mismatch
+      // or if success (already emitted at this point)
+      // then reset
       s.events = [];
       s.index = 0;
       s.success = false;
