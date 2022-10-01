@@ -4,7 +4,7 @@ import { keyEvents$ } from "./common";
 import { KeyCode } from '../keycodes';
 
 /** An observable that only emits when all keys are pressed **in order**. */
-export function seq(keys: KeyCode[]) {
+export function seq(keys: KeyCode[], t: number = 0) {
   interface SeqState {
     events: KeyboardEvent[];
     index: number;
@@ -20,23 +20,29 @@ export function seq(keys: KeyCode[]) {
       // if the code is a mismatch
       // or if success (already emitted at this point)
       // then reset
-      s.events = [];
-      s.index = 0;
-      s.success = false;
+      s.events = []; s.index = 0; s.success = false;
     } else {
       // otherwise, add the matched event 
       s.events.push(event);
       // and increment the index
       s.index++;
 
+      if (t > 0) {
+        clearTimeout(s.timeout);
+        s.timeout = setTimeout(() => {
+          s.events = []; s.index = 0; s.success = false;
+        }, t);
+      }
+
       // if we have the same number of events as keys....
       if (keys.length === s.events.length) {
+        clearTimeout(s.timeout);
         s.success = true;
       }
     }
 
     // always return the state
-    return s
+    return s;
   }
 
   return keyEvents$.pipe(
