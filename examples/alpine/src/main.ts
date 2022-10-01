@@ -17,5 +17,5 @@ retweet seq [y u i o]
   name,
   binding$.pipe(
     map(() => name)
-  ).subscribe(console.debug),
+  ).subscribe(console.info),
 ] as [string, Subscription]);

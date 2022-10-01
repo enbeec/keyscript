@@ -7,30 +7,33 @@ import { KeyCode } from '../keycodes';
 export function seq(keys: KeyCode[], t: number = 0) {
   interface SeqState {
     events: KeyboardEvent[];
-    index: number;
     success: boolean;
     timeout: ReturnType<typeof setTimeout>;
   }
 
   const scanSeq = (s: SeqState, event: KeyboardEvent) => {
+    if (s.success) {
+      // reset on success
+      s.success = false;
+      s.events = [];
+    }
+
     if (
-      s.success ||
-      event.code !== keys[s.index].valueOf()[0]
+      event.code !== keys[s.events.length].valueOf()[0]
     ) {
-      // if the code is a mismatch
-      // or if success (already emitted at this point)
-      // then reset
-      s.events = []; s.index = 0; s.success = false;
+      // no match -- reset if not already empty
+      if (s.events.length) {
+        s.events = [];
+        s.success = false;
+      }
     } else {
       // otherwise, add the matched event 
       s.events.push(event);
-      // and increment the index
-      s.index++;
 
       if (t > 0) {
         clearTimeout(s.timeout);
         s.timeout = setTimeout(() => {
-          s.events = []; s.index = 0; s.success = false;
+          s.events = []; s.success = false;
         }, t);
       }
 
@@ -50,7 +53,6 @@ export function seq(keys: KeyCode[], t: number = 0) {
     // use our reducer
     scan(scanSeq, {
       events: [],
-      index: 0,
       success: false,
     }),
     // only emit on success
