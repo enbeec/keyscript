@@ -57,10 +57,16 @@ const keyEvents$ = shareKeyboardEvents(
   fromEvent<KeyboardEvent>(document, 'keydown'),
 );
 
+/** a stream from a key */
 function keyStream(key: KeyCode) {
   return keyEvents$.pipe(
     filter(event => event.code === key.valueOf()),
   );
+}
+
+function keysStream(keys: KeyCodes) {
+  if (!Array.isArray(keys)) keys = [keys];
+  return keys.map(keyStream);
 }
 
 const defaultOperators = Map<string, KeyOperator>([
@@ -68,40 +74,23 @@ const defaultOperators = Map<string, KeyOperator>([
   ['seq', seq],
 ]);
 
-function flatStream(keys: KeyCodes) {
-  if (!Array.isArray(keys)) keys = [keys];
-
-  return keys.map((s: KeyCode) => {
-    if (Array.isArray(s)) return merge(
-      ...s.map((_s: KeyCode) => keyStream(_s))
-    );
-    else return keyStream(s);
-  });
-}
-
 /** An observable that only emits when all keys are pressed. */
 function chord(keys: KeyCodes) {
-  return combineLatest(flatStream(keys)).pipe(
+  return combineLatest(keysStream(keys)).pipe(
     filter<KeyboardEvent[]>(
       (events) => events.every((e) => e.type === 'keydown')
     ),
   );
 }
 
-interface SeqState {
-  e: KeyboardEvent[];
-  index: number;
-  success: boolean;
-}
-
-const newSeqState = {
-  e: [],
-  index: 0,
-  success: false,
-
-}
 /** An observable that only emits when all keys are pressed **in order**. */
 function seq(keys: KeyCodes) {
+  interface SeqState {
+    e: KeyboardEvent[];
+    index: number;
+    success: boolean;
+  }
+
   const scanSeq = (s: SeqState, event: KeyboardEvent) => {
     if (
       s.success ||
@@ -128,7 +117,11 @@ function seq(keys: KeyCodes) {
   return keyEvents$.pipe(
     filter(e => e.type === 'keydown'),
     // use our reducer
-    scan(scanSeq, newSeqState),
+    scan(scanSeq, {
+      e: [],
+      index: 0,
+      success: false,
+    }),
     // only emit on success
     filter(s => s.success),
     map((s: SeqState) => [...s.e]),
