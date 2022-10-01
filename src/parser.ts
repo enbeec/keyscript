@@ -1,4 +1,4 @@
-import { Observable, combineLatest, map, tap } from "rxjs";
+import { Observable, map, tap } from "rxjs";
 import { List } from "immutable";
 import type { Mod } from "./keymap"
 import { generate } from "peggy";
@@ -7,6 +7,7 @@ import { defaultLogger, ILogger } from "./logging";
 export interface Statement {
   label: string;
   type: 'chord' | 'seq';
+  params: number[];
   mods: Mod[];
   value: string[];
 }

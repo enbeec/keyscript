@@ -10,7 +10,7 @@ left chord [s]
 down chord [d]
 right chord [f]
 justkidding chord [j k]
-retweet seq [y u i o]
+retweet seq(1200) [y u i o]
 `);
 
 /* const subs = */ bindings.mapEntries(([name, binding$]) => [

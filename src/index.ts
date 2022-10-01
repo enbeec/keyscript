@@ -73,7 +73,7 @@ export class Keyscript {
     };
 
     // binding.type is "chord" or "seq" etc.
-    const stream = this.operators.get(binding.type)(binding.value);
+    const stream = this.operators.get(binding.type)(binding.value, ...binding.params);
     if (!stream) throw new Error(
       `Failed to create stream for binding: ${binding.label}`
     );
