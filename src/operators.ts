@@ -8,7 +8,6 @@ import {
   fromEvent,
   combineLatest,
   distinctUntilChanged,
-  tap,
   scan,
 } from 'rxjs';
 import { Map, List } from 'immutable';
@@ -57,7 +56,6 @@ const keyEvents$ = shareKeyboardEvents(
   fromEvent<KeyboardEvent>(document, 'keydown'),
 );
 
-/** a stream from a key */
 function keyStream(key: KeyCode) {
   return keyEvents$.pipe(
     filter(event => event.code === key.valueOf()),
@@ -65,7 +63,6 @@ function keyStream(key: KeyCode) {
 }
 
 function keysStream(keys: KeyCodes) {
-  if (!Array.isArray(keys)) keys = [keys];
   return keys.map(keyStream);
 }
 
