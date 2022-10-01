@@ -40,19 +40,19 @@ export class Keyscript {
   constructor(logger?: ILogger) {
     this.logger = logger || defaultLogger;
 
-    this.matchers = KeyOperators();
+    this.operators = KeyOperators();
     this.keymap = KeyMap();
 
     this.parser$ = makeParser$(
-      this.matchers.matcherNames$,
-      this.keymap.keyNames$,
-      this.keymap.modNames$
+      this.operators.matcherNames$,
+      this.keymap.keyNames,
+      this.keymap.modNames,
     );
   }
 
   private logger: ILogger;
 
-  private matchers: ReturnType<KeyOperators>;
+  private operators: ReturnType<KeyOperators>;
   private keymap: ReturnType<KeyMap>;
   private parser$: Observable<Parser>;
 
@@ -73,7 +73,7 @@ export class Keyscript {
     };
 
     // binding.type is "chord" or "seq" etc.
-    const stream = this.matchers.get(binding.type)(binding.value);
+    const stream = this.operators.get(binding.type)(binding.value);
     if (!stream) throw new Error(
       `Failed to create stream for binding: ${binding.label}`
     );

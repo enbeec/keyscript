@@ -1,5 +1,4 @@
 import { List, Map } from "immutable";
-import { BehaviorSubject, map } from "rxjs";
 import { KeyCode, KeyCodes as KeyCodesLvl } from './keycodes'
 
 type KeyCodes = KeyCodesLvl<1>;
@@ -8,52 +7,21 @@ export type Mod = typeof ModKeys[number];
 
 export type KeyMap = typeof KeyMap;
 
-/** 
-  * A pseudo-class wrapping a: 
-  * 
-  * `BehaviorSubject<Immutable.Map<string | KeyCodes<1>>>`
-  * 
-  * By default, the keymap is built using an Enum of key codes I found online.
-  * Having the map stored in a subject allows for consunmers to write their 
-  * own map or even switch them on the fly. Two `Observable<List<string>>`
-  * are exposed as parser dependencies.
-  *
-  * I don't know a ton about i18n but it seems helpful 
-  *           and would be a pain to incorporate later on IMO.
-  */
 export function KeyMap() {
-  const keymap$: BehaviorSubject<
-    Map<string, KeyCodes>
-  > = new BehaviorSubject(defaultKeymap);
+  const keymap = defaultKeymap;
 
   return {
-    default() {
-      return defaultKeymap;
-    },
-
     Map(): Map<string, KeyCodes> {
-      return keymap$.getValue();
-    },
-
-    Map$() {
-      return keymap$.asObservable();
-    },
-
-    _set(map: Map<string, KeyCodes>) {
-      keymap$.next(map);
+      return keymap;
     },
 
     get(key: string) {
-      return keymap$.getValue().get(key);
+      return keymap.get(key);
     },
 
-    modNames$: keymap$.asObservable().pipe(
-      map(km => List(getModNames(km)))
-    ),
+    modNames: getModNames(keymap),
 
-    keyNames$: keymap$.asObservable().pipe(
-      map(km => List(getKeynames(km)))
-    ),
+    keyNames: getKeynames(keymap),
   }
 }
 

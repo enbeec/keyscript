@@ -21,19 +21,17 @@ export interface Statement {
   */
 export function makeParser$(
   matcherNames$: Observable<List<string>>,
-  keyNames$: Observable<List<string>>,
-  modNames$: Observable<List<string>>,
+  keys: List<string>,
+  mods: List<string>,
   logger?: ILogger,
 ) {
   logger ??= defaultLogger;
-  return combineLatest([matcherNames$, keyNames$, modNames$]).pipe(
-    tap(([matchers, keys, mods]) => logger.debug(
+  return matcherNames$.pipe(
+    tap((matchers) => logger.debug(
       `Generating a parser with:`,
       matchers.toArray(),
-      keys.toArray(),
-      mods.toArray(),
     )),
-    map(([matchers, keys, mods]) => grammar({ matchers, keys, mods })),
+    map((matchers) => grammar({ matchers, keys, mods })),
     // log the grammar
     tap(logger.debug),
     map(grammar => generate(grammar)),
