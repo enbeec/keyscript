@@ -9,13 +9,12 @@ import {
   combineLatest,
   distinctUntilChanged,
   tap,
-  bufferWhen,
-  Subject,
+  scan,
 } from 'rxjs';
 import { Map, List } from 'immutable';
-import { KeyCode, KeyCodes as KeyCodesLvl } from './keycodes';
+import { KeyCode } from './keycodes';
 
-type KeyCodes = KeyCodesLvl<2>;
+type KeyCodes = KeyCode[];
 
 export type KeyOperator = (keys: KeyCodes) => Observable<KeyboardEvent[]>;
 
@@ -58,7 +57,7 @@ const keyEvents$ = shareKeyboardEvents(
   fromEvent<KeyboardEvent>(document, 'keydown'),
 );
 
-function newKeyStream(key: KeyCode) {
+function keyStream(key: KeyCode) {
   return keyEvents$.pipe(
     filter(event => event.code === key.valueOf()),
   );
@@ -72,11 +71,11 @@ const defaultOperators = Map<string, KeyOperator>([
 function flatStream(keys: KeyCodes) {
   if (!Array.isArray(keys)) keys = [keys];
 
-  return keys.map((s: KeyCode | KeyCode[]) => {
+  return keys.map((s: KeyCode) => {
     if (Array.isArray(s)) return merge(
-      ...s.map((_s: KeyCode) => newKeyStream(_s))
+      ...s.map((_s: KeyCode) => keyStream(_s))
     );
-    else return newKeyStream(s);
+    else return keyStream(s);
   });
 }
 
@@ -89,20 +88,45 @@ function chord(keys: KeyCodes) {
   );
 }
 
+interface SeqState {
+  e: KeyboardEvent[];
+  index: number;
+  success: boolean;
+}
+
+const newSeqState = () => ({
+  e: [],
+  index: 0,
+  success: false,
+})
+
 /** An observable that only emits when all keys are pressed **in order**. */
 function seq(keys: KeyCodes) {
+  const scanSeq = (s: SeqState, event: KeyboardEvent) => {
+    if (s.success ||
+      event.code !== keys[s.index + 1].valueOf()[0]
+    ) {
+      return newSeqState();
+    }
 
-  const sequence = (source: Observable<KeyboardEvent[]>): Observable<KeyboardEvent[]> => {
-    return source.pipe(
-      filter((events) => {
-        const sorted = [...events]
-          .sort((a, b) => (a.timeStamp < b.timeStamp ? -1 : 1))
-          .map((e) => e.code)
-          .join();
-        return sorted === events.map(a => a.code).join();
-      })
-    )
+    s.e.push(event);
+    s.index++;
 
+    // if all have matched
+    if (keys.length === s.index + 1) {
+      s.success = true;
+    }
+    return s
   }
-  return sequence(chord(keys));
+
+    ;
+
+  return keyEvents$.pipe(
+    filter(e => e.type === 'keydown'),
+    // use our reducer
+    scan(scanSeq, newSeqState()),
+    // only emit on success
+    filter(s => s.success),
+    map((s: SeqState) => [...s.e]),
+  );
 }
