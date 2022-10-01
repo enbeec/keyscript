@@ -94,28 +94,32 @@ interface SeqState {
   success: boolean;
 }
 
-const newSeqState = () => ({
+const newSeqState = {
   e: [],
   index: 0,
   success: false,
-})
 
+}
 /** An observable that only emits when all keys are pressed **in order**. */
 function seq(keys: KeyCodes) {
   const scanSeq = (s: SeqState, event: KeyboardEvent) => {
-    if (s.success ||
+    if (
+      s.success ||
       event.code !== keys[s.index + 1].valueOf()[0]
     ) {
-      return newSeqState();
+      s.e = [];
+      s.index = 0;
+      s.success = false;
+    } else {
+      s.e.push(event);
+      s.index++;
+
+      // if all have matched
+      if (keys.length === s.index + 1) {
+        s.success = true;
+      }
     }
 
-    s.e.push(event);
-    s.index++;
-
-    // if all have matched
-    if (keys.length === s.index + 1) {
-      s.success = true;
-    }
     return s
   }
 
@@ -124,7 +128,7 @@ function seq(keys: KeyCodes) {
   return keyEvents$.pipe(
     filter(e => e.type === 'keydown'),
     // use our reducer
-    scan(scanSeq, newSeqState()),
+    scan(scanSeq, newSeqState),
     // only emit on success
     filter(s => s.success),
     map((s: SeqState) => [...s.e]),
