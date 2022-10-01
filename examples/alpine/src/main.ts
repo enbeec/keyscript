@@ -9,6 +9,8 @@ up chord [e]
 left chord [s]
 down chord [d]
 right chord [f]
+justkidding chord [j k]
+retweet seq [y u i o]
 `);
 
 /* const subs = */ bindings.mapEntries(([name, binding$]) => [

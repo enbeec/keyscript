@@ -8,6 +8,9 @@ import {
   fromEvent,
   combineLatest,
   distinctUntilChanged,
+  tap,
+  bufferWhen,
+  Subject,
 } from 'rxjs';
 import { Map, List } from 'immutable';
 import { KeyCode, KeyCodes as KeyCodesLvl } from './keycodes';
@@ -66,18 +69,20 @@ const defaultOperators = Map<string, KeyOperator>([
   ['seq', seq],
 ]);
 
-/** An observable that only emits when all keys are pressed. */
-function chord(keys: KeyCodes) {
+function flatStream(keys: KeyCodes) {
   if (!Array.isArray(keys)) keys = [keys];
 
-  const keyCodeEvents$ = keys.map((s: KeyCode | KeyCode[]) => {
+  return keys.map((s: KeyCode | KeyCode[]) => {
     if (Array.isArray(s)) return merge(
       ...s.map((_s: KeyCode) => newKeyStream(_s))
     );
     else return newKeyStream(s);
   });
+}
 
-  return combineLatest(keyCodeEvents$).pipe(
+/** An observable that only emits when all keys are pressed. */
+function chord(keys: KeyCodes) {
+  return combineLatest(flatStream(keys)).pipe(
     filter<KeyboardEvent[]>(
       (events) => events.every((e) => e.type === 'keydown')
     ),
@@ -86,6 +91,7 @@ function chord(keys: KeyCodes) {
 
 /** An observable that only emits when all keys are pressed **in order**. */
 function seq(keys: KeyCodes) {
+
   const sequence = (source: Observable<KeyboardEvent[]>): Observable<KeyboardEvent[]> => {
     return source.pipe(
       filter((events) => {
@@ -96,7 +102,7 @@ function seq(keys: KeyCodes) {
         return sorted === events.map(a => a.code).join();
       })
     )
-  }
 
+  }
   return sequence(chord(keys));
 }
