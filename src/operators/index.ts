@@ -6,12 +6,11 @@ import {
 import { Map, List } from 'immutable';
 
 import { KeyCode } from '../keycodes';
-type KeyCodes = KeyCode[];
 
 import { chord } from './chord';
 import { seq } from './seq';
 
-export type KeyOperator = (keys: KeyCodes) => Observable<KeyboardEvent[]>;
+export type KeyOperator = (keys: KeyCode[]) => Observable<KeyboardEvent[]>;
 
 export type KeyOperators = typeof KeyOperators;
 
@@ -28,6 +27,10 @@ export function KeyOperators() {
   > = new BehaviorSubject(defaultOperators);
 
   return {
+    defaults() {
+      return defaultOperators;
+    },
+
     get(name: string) {
       return matchers$.getValue().get(name);
     },
