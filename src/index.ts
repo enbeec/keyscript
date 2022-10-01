@@ -1,7 +1,7 @@
 import { Observable, ObservedValueOf, firstValueFrom, map, withLatestFrom } from "rxjs";
 import type { KeyCode } from "./keycodes";
 import { Map } from "immutable";
-import { KeyOperators } from "./keyboard";
+import { KeyOperators } from "./operators";
 import { KeyMap } from "./keymap"
 import { makeParser$, Statement } from "./parser";
 import { defaultLogger, ILogger } from "./logging";
